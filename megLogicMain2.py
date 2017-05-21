@@ -151,9 +151,7 @@ if __name__ == "__main__":
 
         thisOdor = ScikitlML.get_OdorPrediction(forecdf.iloc[i,0],forecWaterlvR,int(forecdf.iloc[i,3]),int(forecdf.iloc[i,4]),forecdf.iloc[i,5])
 
-        OdorScore = thisOdor
-
-        print OdorScore
+        OdorScore = thisOdor[0]
 
         pre_chgdate_frt = forecdf.iloc[i,0]
         pre_chgdate = pre_chgdate_frt.replace("-","/")
@@ -161,7 +159,7 @@ if __name__ == "__main__":
 ##2017/05/19 meg-portは改修中の為、この操作は行わず。
 ##        portalr2 = RiverData2.set_RiverDataToPortal2('PredictionData','目黒川河川予測データ', pre_chgdate, forecdf.iloc[i,1], forecWaterlv[:-10], forecdf.iloc[i,3], forecdf.iloc[i,4], str(OdorScore[:-10]))
 
-        thisdate = forecdf.iloc[i,0] + ',' + forecdf.iloc[i,1] + ',' + str(forecWaterlv)[:-10] + ',' + str(forecdf.iloc[i,3]) + ',' + str(forecdf.iloc[i,4]) + ',' + str(OdorScore[:-10]) + '\n'
+        thisdate = forecdf.iloc[i,0] + ',' + forecdf.iloc[i,1] + ',' + str(forecWaterlv)[:-10] + ',' + str(forecdf.iloc[i,3]) + ',' + str(forecdf.iloc[i,4]) + ',' + str(OdorScore) + '\n'
         newForecFile.writelines(thisdate)
         thisdate = ""
         
