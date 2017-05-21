@@ -1,47 +1,43 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 #######################
-## 使い方
-## getNowData.py lat lon
 ## lat : 経度
 ## lon : 緯度
-## mode : 表示モード（0:zabbix_sender 1:print）
 #######################
 
 import sys
 import urllib
-import urllib2
 import json
-import re
-import datetime
-import time
-import subprocess
-import re
-import linecache
+import pandas
+
+from megClassWeb import ProxySet
 
 ### Functions
-def get_riverInfo():
-  url = "http://www.kasen-suibo.metro.tokyo.jp/im/uryosuii/tsim0106g_2B09.html"
-  response = urllib2.urlopen(url)
-  charset = response.headers.getparam('charset')
+### 2 いきなり現在の水位がとれる様に改修
+### 2 対象URLは引数でとる様に改修
+def get_riverInfo(url):
+
+  proxyObj = ProxySet()
+  proxycode = proxyObj.set_proxyURL(url)
+  proxy = {'http':proxycode}
+  response = urllib.urlopen(url,proxies=proxy)
+
   html = response.read()
-  if charset != '':
-    try:
-      codecs.lookup(charset)
-      html = html.decode(charset, 'replace')
-    except:
-      pass
 
-  for m in re.finditer(r'現在 (.*)$', html):
-    print m.groups(1)
+  fetched_dataframes = pandas.io.html.read_html(html)
 
+  water_Level = fetched_dataframes[7].ix[1,1]
 
-  targindex = html.find("現在の水位")
-  
-  return html
+  return water_Level
 
 def act_OpenWeatherMap(lat, lon):
+
   url = "http://api.openweathermap.org/data/2.5/weather?"
+
+  proxyObj = ProxySet()
+  proxycode = proxyObj.set_proxyURL(url)
+  proxy = {'http':proxycode}
+
   appid = '2e6469bef764db86ef2e3b5da3432002'
 
   params = urllib.urlencode(
@@ -49,20 +45,33 @@ def act_OpenWeatherMap(lat, lon):
                'lat': lat,
                'lon': lon,
               })
-  response = urllib.urlopen(url+params)
+  response = urllib.urlopen(url+params,proxies=proxy)
+
   return response.read()
 
-def get_rainInfo():
-  url = "http://www.kasen-suibo.metro.tokyo.jp/im/popup/popup02_1B06.html"
-  response = urllib2.urlopen(url)
-  charset = response.headers.getparam('charset')
-  html = response.read()
-  if charset != '':
-    try:
-      codecs.lookup(charset)
-      html = html.decode(charset, 'replace')
-    except:
-      pass
+## get_rainInfo(url,key)
+## url:雨量の取得先URL
+## key: 1 - 1分間雨量 10 - 10分間雨量
+### 2 いきなり現在の水位がとれる様に改修
+### 2 対象URLは引数でとる様に改修
+def get_rainInfo(url,key):
 
-  return html
+  ##url = "http://www.kasen-suibo.metro.tokyo.jp/im/popup/popup02_1B06.html"
+
+  proxyObj = ProxySet()
+  proxycode = proxyObj.set_proxyURL(url)
+  proxy = {'http':proxycode}
+
+  response = urllib.urlopen(url,proxies=proxy)
+  html = response.read()
+  fetched_dataframes = pandas.io.html.read_html(html)
+  
+  if key == 1:
+    rainfall = fetched_dataframes[0].ix[1,1]
+  elif key == 10:
+    rainfall = fetched_dataframes[0].ix[2,1]
+  else:
+    rainfall = "9999 mm"
+
+  return rainfall.replace(' mm','')
 

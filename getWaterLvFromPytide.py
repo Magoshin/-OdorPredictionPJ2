@@ -7,7 +7,7 @@ import csv
 import sys
 ##from datetime import datetime
 import datetime
-from Tkinter import *
+##from Tkinter import *
 
 import pandas as pd
 from pandas import DataFrame
@@ -15,14 +15,13 @@ from pandas import Series, read_csv, date_range
 
 from pytides.tide import Tide
 import numpy as np
-import matplotlib.pyplot as plt
+##import matplotlib.pyplot as plt
 
 ### Functions
 def get_WaterLevelForecast(foredate,place):
 
   historyFileNm="/home/megadmin/data/real_data.txt"
-##  historyFileNm="/home/megadmin/data/long_real_data.txt"
-  MediaFileNm="/home/megadmin/data/WaterLV_media.csv"
+  ##MediaFileNm="/home/megadmin/data/WaterLV_media.csv"
 
   ## カラム名のサンプル #######################
   ## date,obsrPoint,waterLevel,precip,temp,odor
@@ -36,7 +35,7 @@ def get_WaterLevelForecast(foredate,place):
 
   constituent = [c.name for c in tide.model['constituent']]
   df = DataFrame(tide.model, index=constituent).drop('constituent', axis=1)
-  df.sort('amplitude', ascending=False).head(10)
+##  df.sort('amplitude', ascending=False).head(10)
 
   # 今日の日付を取得
   today = datetime.datetime.today()
@@ -51,34 +50,3 @@ def get_WaterLevelForecast(foredate,place):
 
   return prediction
 
-def get_OdorlForecast(foredate,place):
-
-  historyFileNm="/home/megadmin/data/real_data.txt"
-##  MediaFileNm="/home/megadmin/data/Odor_media.csv"
-
-  ## カラム名のサンプル #######################
-  ## date,obsrPoint,waterLevel,precip,temp,odor
-  #############################################
-
-  df0 = pd.read_csv(historyFileNm ,index_col=0, parse_dates=True)
-  odor = df0['odor']
-  demeaned = odor.values - odor.values.mean()
-
-  tide = Tide.decompose(demeaned, odor.index.to_datetime())
-
-  constituent = [c.name for c in tide.model['constituent']]
-  df = DataFrame(tide.model, index=constituent).drop('constituent', axis=1)
-  df.sort('amplitude', ascending=False).head(10)
-
-  # 今日の日付を取得
-  today = datetime.datetime.today()
-  # 翌日を取得
-  # ※テスト用に５日後
-  next_day = today + datetime.timedelta(days=5)
-
-  dates = date_range(start=today.strftime('%Y-%m-%d'), end=next_day.strftime('%Y-%m-%d'), freq='10T')
-  hours = np.cumsum(np.r_[0, [t.total_seconds() / 3600.0 for t in np.diff(dates.to_pydatetime())]])
-  times = Tide._times(dates[0], hours)
-  prediction = Series(tide.at(times) + odor.values.mean(), index=dates)
-
-  return prediction

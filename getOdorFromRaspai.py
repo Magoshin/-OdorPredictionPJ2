@@ -12,9 +12,18 @@ import linecache
 
 ### Functions
 def get_RaspiData(key):
+
+  
   keypass = '/home/megadmin/.ssh/id_rsa'
   ssh_user = 'pi@'
-  rasPai_IP = '153.234.68.62'
+
+  ##rasPai_IP = '10.0.1.2'
+
+  # dummy 処理にて待機中
+  rasPai_IP = '172.17.0.99'
+
+  # 昔の名残
+  ##rasPai_IP = '153.234.68.62'
   ##rasPai_IP = '153.155.221.31'
 
   cmd = "/usr/bin/ssh -o 'ConnectTimeout 1' -i " + keypass + " " + ssh_user + rasPai_IP + " 'python3 /home/pi/Documents/h2sSensor.py'"
