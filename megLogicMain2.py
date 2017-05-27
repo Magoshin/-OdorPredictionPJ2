@@ -10,7 +10,6 @@ import getForecastData as WetherForec
 import getOdorFromRaspai as OdorFromRaspai
 import getWaterLvFromPytide as WaterLvForec
 import actScikitLearn as ScikitlML
-##import getWaterLvFromJupyter as WaterLvPre
 
 from datetime import datetime
 import csv
@@ -68,7 +67,7 @@ if __name__ == "__main__":
   Precip = WetherNow.get_rainInfo(rainDataURL,10)
 
   # 実測値の編集対象ファイル
-  targDir = "/home/megadmin/data/"
+  targDir = "/megdata/data_meg-logic/"
   fileName = "real_data.txt"
   filePath = targDir + fileName
 
@@ -122,7 +121,7 @@ if __name__ == "__main__":
     i += 1
 
   waterLevelF = WaterLvForec.get_WaterLevelForecast(date_time_frt.strftime("%Y-%m-%d %H:%M"),ObsrPoint)
-  waterleveltmp_filenm = '/home/megadmin/data/waterleveltmp.txt'
+  waterleveltmp_filenm = targDir + 'waterleveltmp.txt'
   waterLevelF.to_csv(waterleveltmp_filenm)
 
   # 記載済み予測ファイルの水位を修正
@@ -170,6 +169,5 @@ if __name__ == "__main__":
   tmpld.close()
 
   # 今回の予測データをリネームし保存
-  ###os.rename(filePathF,newFilePathF)
-
+  os.rename(filePathF,newFilePathF)
 

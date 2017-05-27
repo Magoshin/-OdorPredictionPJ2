@@ -30,7 +30,7 @@ def get_RaspiData(key):
   try:
     nowRaspiVal = subprocess.check_output( cmd,shell=True )
   except:
-    histfile = '/home/megadmin/data/real_data.txt'
+    histfile = '/megdata/data_meg-logic/real_data.txt'
     num_lines = sum(1 for line in open(histfile))
     target_line = linecache.getline(histfile, int(num_lines))
     dummy_temp = target_line.split(',')[4]

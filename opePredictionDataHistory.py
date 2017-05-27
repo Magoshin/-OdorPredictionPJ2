@@ -14,8 +14,8 @@ today = datetime.datetime.today()
 yesterday = today - datetime.timedelta(days=1)
 yesterdaystr = yesterday.strftime('%Y-%m-%d')
 
-datadir = "/home/megadmin/data"
-targetfile = "/home/megadmin/data/history/forecast_data.txt_" + yesterdaystr + ".tgz "
+datadir = "/megdata/data_meg-logic"
+targetfile = datadir + "/history/forecast_data.txt_" + yesterdaystr + ".tgz "
 
 if os.path.exists(targetfile):
   sys.exit();

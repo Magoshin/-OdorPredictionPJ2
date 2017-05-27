@@ -11,7 +11,7 @@ from sklearn.externals import joblib
 ### Functions
 def get_OdorPrediction(DateTime,water,rain,temp,odor):
 
-  realFile = "/home/megadmin/data/real_data.txt"
+  realFile = "/megdata/data_meg-logic/real_data.txt"
   data = pd.read_csv(realFile, sep=",")
   clf = linear_model.LinearRegression()
 

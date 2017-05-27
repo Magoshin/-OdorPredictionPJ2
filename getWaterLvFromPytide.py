@@ -5,9 +5,7 @@
 import json
 import csv
 import sys
-##from datetime import datetime
 import datetime
-##from Tkinter import *
 
 import pandas as pd
 from pandas import DataFrame
@@ -15,13 +13,11 @@ from pandas import Series, read_csv, date_range
 
 from pytides.tide import Tide
 import numpy as np
-##import matplotlib.pyplot as plt
 
 ### Functions
 def get_WaterLevelForecast(foredate,place):
 
-  historyFileNm="/home/megadmin/data/real_data.txt"
-  ##MediaFileNm="/home/megadmin/data/WaterLV_media.csv"
+  historyFileNm="/megdata/data_meg-logic/real_data.txt"
 
   ## カラム名のサンプル #######################
   ## date,obsrPoint,waterLevel,precip,temp,odor
