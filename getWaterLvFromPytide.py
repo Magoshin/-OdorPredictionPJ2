@@ -31,7 +31,7 @@ def get_WaterLevelForecast(foredate,place):
 
   constituent = [c.name for c in tide.model['constituent']]
   df = DataFrame(tide.model, index=constituent).drop('constituent', axis=1)
-##  df.sort('amplitude', ascending=False).head(10)
+  df.sort_values('amplitude', ascending=False).head(10)
 
   # 今日の日付を取得
   today = datetime.datetime.today()

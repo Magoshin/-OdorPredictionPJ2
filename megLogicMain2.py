@@ -132,7 +132,7 @@ if __name__ == "__main__":
   tmplines = tmpld.readlines()
 
   # 当該時間の予測ファイル
-  ##fileNameF = "forecast_data.txt"
+  fileNameF = "forecast_data.txt"
   newFilePathF0 = targDir + fileNameF + '_' + nowdate[0:17]
   newFilePathF1 = newFilePathF0.replace(" ","_")
   newFilePathF = newFilePathF1.replace(":","-")
@@ -148,7 +148,11 @@ if __name__ == "__main__":
         ### scikit-learn Machine Learning !!
         forecWaterlvR = round(float(forecWaterlv),0)
 
-        thisOdor = ScikitlML.get_OdorPrediction(forecdf.iloc[i,0],forecWaterlvR,int(forecdf.iloc[i,3]),int(forecdf.iloc[i,4]),forecdf.iloc[i,5])
+        thisOdor = ScikitlML.get_OdorPrediction(forecdf.iloc[i,0], \
+			forecWaterlvR, \
+			int(forecdf.iloc[i,3]), \
+			int(forecdf.iloc[i,4]), \
+			forecdf.iloc[i,5])
 
         OdorScore = thisOdor[0]
 
@@ -158,7 +162,13 @@ if __name__ == "__main__":
 ##2017/05/19 meg-portは改修中の為、この操作は行わず。
 ##        portalr2 = RiverData2.set_RiverDataToPortal2('PredictionData','目黒川河川予測データ', pre_chgdate, forecdf.iloc[i,1], forecWaterlv[:-10], forecdf.iloc[i,3], forecdf.iloc[i,4], str(OdorScore[:-10]))
 
-        thisdate = forecdf.iloc[i,0] + ',' + forecdf.iloc[i,1] + ',' + str(forecWaterlv)[:-10] + ',' + str(forecdf.iloc[i,3]) + ',' + str(forecdf.iloc[i,4]) + ',' + str(OdorScore) + '\n'
+        thisdate = forecdf.iloc[i,0] + ',' \
+		+ forecdf.iloc[i,1] + ',' \
+		+ str(forecWaterlv)[:-10] + ',' \
+		+ str(forecdf.iloc[i,3]) + ',' \
+		+ str(forecdf.iloc[i,4]) + ',' \
+		+ str(OdorScore) + '\n'
+
         newForecFile.writelines(thisdate)
         thisdate = ""
         
@@ -169,5 +179,5 @@ if __name__ == "__main__":
   tmpld.close()
 
   # 今回の予測データをリネームし保存
-  os.rename(filePathF,newFilePathF)
+  ##os.rename(filePathF,newFilePathF)
 

@@ -10,7 +10,7 @@ import json
 class ProxySet(object):
   def __init__(self):
     self.proxy_user = "z206R894"
-    self.proxy_password = "mgmjoke3!"
+    self.proxy_password = "mgmjoke4!"
     self.proxy_site = "131.248.58.101:8080"
 
 ### Functions
