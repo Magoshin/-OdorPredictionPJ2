@@ -10,14 +10,14 @@ from sklearn.externals import joblib
 
 
 # Functions
-def get_OdorPrediction(DateTime, water, rain, temp, odor):
+def get_OdorPrediction(DateTime, water, rain, temp, humidity, odor):
 
     realFile = "/megdata/data_meg-logic/real_data.txt"
     data = pd.read_csv(realFile, sep=",")
     clf = linear_model.LinearRegression()
 
     # 説明変数をセット
-    X = data.loc[:, ['waterLevel', 'precip', 'temp']].as_matrix()
+    X = data.loc[:, ['waterLevel', 'precip', 'temp', 'humidity']].as_matrix()
     # 目的変数をセット
     Y = data['odor'].as_matrix()
 
@@ -34,11 +34,14 @@ def get_OdorPrediction(DateTime, water, rain, temp, odor):
     print b
     print clf.score(X, Y)
     """
-
     # 偏回帰変数を込める
-    X2 = [water, rain, temp]
+    X2 = [water, rain, temp, humidity]
+
+    # 結果を評価
+    score = clf.score(X, Y)
+    # print score
 
     # 予測を実行し、変数に入れて返す！！
-    forecOdor = clf.predict(X2)
+    forecOdor = [clf.predict(X2), score]
 
     return forecOdor

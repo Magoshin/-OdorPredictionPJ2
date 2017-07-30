@@ -7,7 +7,7 @@
 #######################
 import getNowData as WetherNow
 import getForecastData as WetherForec
-import getOdorFromRaspai2 as OdorFromRaspai
+import getOdorFromRaspai as OdorFromRaspai
 import getWaterLvFromPytide as WaterLvForec
 import actScikitLearn as ScikitlML
 from datetime import datetime
@@ -58,11 +58,19 @@ if __name__ == "__main__":
     # ケルヴィン氏温度の絶対零度
     absl_temp = 273.15
 
-    # 気温
-    jp_temp = OdorFromRaspai.get_RaspiData("temp")
+    RaspiDataOrg1 = OdorFromRaspai.get_RaspiData("all")
+    RaspiDataOrg = RaspiDataOrg1.decode('utf-8')
+    RaspiDataAry = RaspiDataOrg.split(',')
 
+    # 気温
+    # jp_temp = OdorFromRaspai.get_RaspiData("temp")
+    jp_temp = RaspiDataAry[0]
     # 臭気
-    odor = OdorFromRaspai.get_RaspiData("odor")
+    # odor = OdorFromRaspai.get_RaspiData("odor")
+    odor = RaspiDataAry[1]
+    # 湿度
+    # humidity = OdorFromRaspai.get_RaspiData("humidity")
+    humidity = RaspiDataAry[2]
 
     # 10分間雨量を取得(上目黒)
     Precip = WetherNow.get_rainInfo(rainDataURL, 10)
@@ -73,13 +81,18 @@ if __name__ == "__main__":
     filePath = targDir + fileName
 
     # 実測値用テーブル
-    nowtable = [nowdate, ObsrPoint, waterLevel, Precip, jp_temp, odor]
+    nowtable = [nowdate,
+                ObsrPoint,
+                waterLevel,
+                Precip,
+                jp_temp,
+                humidity,
+                odor]
 
     # テキストへの出力
     wcsv_obj = csv.writer(file(filePath, 'a'), lineterminator='\n')
     wcsv_obj.writerow(nowtable)
 
-    # meg-portに実測値を送付
     # 天気予報から未来データを取得
     json_str = WetherForec.act_OpenWeatherMap(lat, lon)
     wes_data = json.loads(json_str)
@@ -90,7 +103,7 @@ if __name__ == "__main__":
 
     # 未来予測の編集
     i = 0
-    for i in range(0, 35):
+    for i in range(0, len(wes_data)):
         # 予報年月日と日時
         date_time_frt = datetime.fromtimestamp(wes_data["list"][i]["dt"])
         date_time = date_time_frt.strftime("%Y-%m-%d %H:%M")
@@ -109,12 +122,16 @@ if __name__ == "__main__":
         else:
             PrecipF = 0
 
+        # 予測湿度
+        humidityF = wes_data["list"][i]["main"]["humidity"]
+
         # 未来予測値テーブル
         Forectable = [date_time,
                       ObsrPoint,
                       waterLevelF,
                       PrecipF,
                       round(jp_tempF, 2),
+                      humidityF,
                       odor]
 
         wcsv_objF = csv.writer(file(filePathF, 'a'), lineterminator='\n')
@@ -149,16 +166,22 @@ if __name__ == "__main__":
                 forecWaterlv = line[20:].rstrip("\n")
 
                 # scikit-learn Machine Learning !!
+                # forecdf.iloc[i, 0] : 日付
+                # forecdf.iloc[i, 3] : 降水量
+                # forecdf.iloc[i, 4] : 温度
+                # forecdf.iloc[i, 5] : 湿度
+                # forecdf.iloc[i, 6] : 臭気（H2S）
                 forecWaterlvR = round(float(forecWaterlv), 0)
-
                 thisOdor = ScikitlML.get_OdorPrediction(
                                                   forecdf.iloc[i, 0],
                                                   forecWaterlvR,
                                                   int(forecdf.iloc[i, 3]),
                                                   int(forecdf.iloc[i, 4]),
-                                                  forecdf.iloc[i, 5])
+                                                  forecdf.iloc[i, 5],
+                                                  forecdf.iloc[i, 6])
 
-                OdorScore = thisOdor[0]
+                OdorScore = thisOdor[0][0]
+                tolerance = thisOdor[1]
 
                 pre_chgdate_frt = forecdf.iloc[i, 0]
                 pre_chgdate = pre_chgdate_frt.replace("-", "/")
@@ -168,7 +191,8 @@ if __name__ == "__main__":
                     + str(forecWaterlv)[:-10] + ','  \
                     + str(round(forecdf.iloc[i, 3], 3)) + ',' \
                     + str(round(forecdf.iloc[i, 4], 3)) + ',' \
-                    + str(OdorScore) + '\n'
+                    + str(forecdf.iloc[i, 5]) + ',' \
+                    + str(round(OdorScore, 3)) + '\n'
 
                 newForecFile.writelines(thisdate)
                 thisdate = ""
@@ -188,10 +212,16 @@ if __name__ == "__main__":
 
     with open(thisForecFileNm, "w") as thisForecF:
         with open(newFilePathF, "r") as f:
-            lines = f.readlines()
+            lines = set(f.readlines())
             lines_sorted = sorted(lines)
         for l in lines_sorted:
             thisForecF.write(l)
 
     # ソート前の予測ファイルは削除
     os.remove(newFilePathF)
+
+    # 予測ファイルの再集計作業
+    ##forecName = ['date', 'obsrPoint', 'waterLevel', 'precip', 'temp', 'humidity', 'odor']
+    ##forec_iris = pd.read_csv(thisForecFileNm, header=None, names=forecName)
+    ##foredata = forec_iris.groupby('date').values
+    ##print foredata
