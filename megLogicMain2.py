@@ -11,6 +11,7 @@ import getOdorFromRaspai as OdorFromRaspai
 import getWaterLvFromPytide as WaterLvForec
 import actScikitLearn as ScikitlML
 from datetime import datetime
+import actZabbixSender as zbxSend
 import csv
 import json
 import math
@@ -55,6 +56,13 @@ if __name__ == "__main__":
 
     wes_dataArry = json.loads(json_str)
 
+    # 気圧
+    pressure = wes_dataArry['main']['pressure']
+    # 雲量
+    cloudness = wes_dataArry['clouds'].values()[0]
+    # 風力
+    windspeed = wes_dataArry['wind']['speed']
+
     # ケルヴィン氏温度の絶対零度
     absl_temp = 273.15
 
@@ -63,13 +71,10 @@ if __name__ == "__main__":
     RaspiDataAry = RaspiDataOrg.split(',')
 
     # 気温
-    # jp_temp = OdorFromRaspai.get_RaspiData("temp")
     jp_temp = RaspiDataAry[0]
     # 臭気
-    # odor = OdorFromRaspai.get_RaspiData("odor")
     odor = RaspiDataAry[1]
     # 湿度
-    # humidity = OdorFromRaspai.get_RaspiData("humidity")
     humidity = RaspiDataAry[2]
 
     # 10分間雨量を取得(上目黒)
@@ -87,11 +92,24 @@ if __name__ == "__main__":
                 Precip,
                 jp_temp,
                 humidity,
+                pressure,
+                cloudness,
+                windspeed,
                 odor]
 
     # テキストへの出力
     wcsv_obj = csv.writer(file(filePath, 'a'), lineterminator='\n')
     wcsv_obj.writerow(nowtable)
+
+    # Zabbix にもデータ出力
+    zbxSend.actZabbixSender("meg-logic.temperature", jp_temp)
+    zbxSend.actZabbixSender("meg-logic.Humidity", humidity)
+    zbxSend.actZabbixSender("meg-logic.H2s", odor)
+    zbxSend.actZabbixSender("meg-logic.Precipitation", Precip)
+    zbxSend.actZabbixSender("meg-logic.waterLevel", str(waterLevel))
+    zbxSend.actZabbixSender("meg-logic.pressure", str(pressure))
+    zbxSend.actZabbixSender("meg-logic.cloudness", str(cloudness))
+    zbxSend.actZabbixSender("meg-logic.windspeed", str(windspeed))
 
     # 天気予報から未来データを取得
     json_str = WetherForec.act_OpenWeatherMap(lat, lon)
@@ -103,7 +121,8 @@ if __name__ == "__main__":
 
     # 未来予測の編集
     i = 0
-    for i in range(0, len(wes_data)):
+
+    for i in range(0, len(wes_data["list"])):
         # 予報年月日と日時
         date_time_frt = datetime.fromtimestamp(wes_data["list"][i]["dt"])
         date_time = date_time_frt.strftime("%Y-%m-%d %H:%M")
@@ -125,13 +144,23 @@ if __name__ == "__main__":
         # 予測湿度
         humidityF = wes_data["list"][i]["main"]["humidity"]
 
+        # 予測気圧
+	pressureF = wes_data["list"][i]["main"]["pressure"]
+	# 予測雲量
+	cloudnessF = wes_data["list"][i]["clouds"].values()[0]
+	# 予測風量
+        windspeedF = wes_data["list"][i]['wind']['speed']
+
         # 未来予測値テーブル
         Forectable = [date_time,
                       ObsrPoint,
                       waterLevelF,
-                      PrecipF,
+                      round(PrecipF, 2),
                       round(jp_tempF, 2),
                       humidityF,
+		      pressureF,
+		      cloudnessF,
+		      windspeedF,
                       odor]
 
         wcsv_objF = csv.writer(file(filePathF, 'a'), lineterminator='\n')
@@ -170,7 +199,10 @@ if __name__ == "__main__":
                 # forecdf.iloc[i, 3] : 降水量
                 # forecdf.iloc[i, 4] : 温度
                 # forecdf.iloc[i, 5] : 湿度
-                # forecdf.iloc[i, 6] : 臭気（H2S）
+                # forecdf.iloc[i, 6] : 気圧
+                # forecdf.iloc[i, 7] : 雲量
+                # forecdf.iloc[i, 8] : 風量
+                # forecdf.iloc[i, 9] : 臭気（H2S）
                 forecWaterlvR = round(float(forecWaterlv), 0)
                 thisOdor = ScikitlML.get_OdorPrediction(
                                                   forecdf.iloc[i, 0],
@@ -178,7 +210,10 @@ if __name__ == "__main__":
                                                   int(forecdf.iloc[i, 3]),
                                                   int(forecdf.iloc[i, 4]),
                                                   forecdf.iloc[i, 5],
-                                                  forecdf.iloc[i, 6])
+                                                  forecdf.iloc[i, 6],
+                                                  forecdf.iloc[i, 7],
+                                                  forecdf.iloc[i, 8],
+                                                  forecdf.iloc[i, 9])
 
                 OdorScore = thisOdor[0][0]
                 tolerance = thisOdor[1]
@@ -192,6 +227,9 @@ if __name__ == "__main__":
                     + str(round(forecdf.iloc[i, 3], 3)) + ',' \
                     + str(round(forecdf.iloc[i, 4], 3)) + ',' \
                     + str(forecdf.iloc[i, 5]) + ',' \
+                    + str(forecdf.iloc[i, 6]) + ',' \
+                    + str(forecdf.iloc[i, 7]) + ',' \
+                    + str(forecdf.iloc[i, 8]) + ',' \
                     + str(round(OdorScore, 3)) + '\n'
 
                 newForecFile.writelines(thisdate)
@@ -221,7 +259,19 @@ if __name__ == "__main__":
     os.remove(newFilePathF)
 
     # 予測ファイルの再集計作業
-    ##forecName = ['date', 'obsrPoint', 'waterLevel', 'precip', 'temp', 'humidity', 'odor']
-    ##forec_iris = pd.read_csv(thisForecFileNm, header=None, names=forecName)
-    ##foredata = forec_iris.groupby('date').values
-    ##print foredata
+    lastForecFileNm0 = targDir \
+        + "meg_" \
+        + ObsrPoint + "_" \
+        + fileNameF + '_' \
+        + nowdate[0:17]
+    lastForecFileNm1 = lastForecFileNm0.replace(" ", "_")
+    lastForecFileNm = lastForecFileNm1.replace(":", "-")
+
+    # pandas を使い日付・時間でグループ化
+    forecName = ['date', 'obsrPoint', 'waterLevel', 'precip', 'temp', 'humidity', 'pressure', 'cloudness', 'windspeed', 'odor']
+    forec_iris = pd.read_csv(thisForecFileNm, header=None, names=forecName)
+    # print forec_iris.groupby('date').max()
+    forec_iris.groupby('date').max().to_csv(lastForecFileNm, header=None)
+
+    # 最終化前の予測ファイルを削除
+    os.remove(thisForecFileNm)

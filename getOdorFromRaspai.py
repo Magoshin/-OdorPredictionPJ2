@@ -42,10 +42,6 @@ def get_RaspiData(key):
             + dummy_temp + "," \
             + dummy_humidity
 
-    # 更新チェック用にデータを一時保存
-    with open(raspidata_tmp, 'w') as raspitmp:
-        raspitmp.write(nowRaspiVal)
-
     # RasPiから読み込んだデータ
     nowRaspiValAry = nowRaspiVal.split(',')
 
@@ -57,8 +53,12 @@ def get_RaspiData(key):
     # 更新エラー処理
     if nowRaspiValAry[0] == beforeRaspiValAry[0]:
         errObj = errorLog()
-	thisModulePath = sys.argv[0].split('/')
-	res = errObj.write_ErrorLog("E_Logic_0001", thisModulePath[3], "H2Ssensor.logが更新されていません。")
+	# thisModulePath = sys.argv[0].split('/')
+	res = errObj.write_ErrorLog("E_Logic_0001", "getOdorFromRaspai.py", u'An update failure was detected from H2Ssensor.log'.encode('utf-8'))
+
+    # 更新チェック用にデータを一時領域に保存
+    with open(raspidata_tmp, 'w') as raspitmp:
+        raspitmp.write(nowRaspiVal)
 
     # H2Ssensor.log
     # 0 : DateTime
