@@ -12,6 +12,7 @@ import getWaterLvFromPytide as WaterLvForec
 import actScikitLearn as ScikitlML
 from datetime import datetime
 import actZabbixSender as zbxSend
+import sendToMegport as megportSend
 import csv
 import json
 import math
@@ -101,6 +102,19 @@ if __name__ == "__main__":
     wcsv_obj = csv.writer(file(filePath, 'a'), lineterminator='\n')
     wcsv_obj.writerow(nowtable)
 
+    # meg-port に実測値を送信
+    """
+    megportSend.sendRiverData("megcols",
+                              nowdate,
+                              waterLevel,
+                              Precip,
+                              pressure,
+                              cloudness,
+                              windspeed,
+                              jp_temp,
+                              humidity,
+                              odor)
+    """
     # Zabbix にもデータ出力
     zbxSend.actZabbixSender("meg-logic.temperature", jp_temp)
     zbxSend.actZabbixSender("meg-logic.Humidity", humidity)
@@ -145,10 +159,10 @@ if __name__ == "__main__":
         humidityF = wes_data["list"][i]["main"]["humidity"]
 
         # 予測気圧
-	pressureF = wes_data["list"][i]["main"]["pressure"]
-	# 予測雲量
-	cloudnessF = wes_data["list"][i]["clouds"].values()[0]
-	# 予測風量
+        pressureF = wes_data["list"][i]["main"]["pressure"]
+        # 予測雲量
+        cloudnessF = wes_data["list"][i]["clouds"].values()[0]
+        # 予測風量
         windspeedF = wes_data["list"][i]['wind']['speed']
 
         # 未来予測値テーブル
@@ -158,9 +172,9 @@ if __name__ == "__main__":
                       round(PrecipF, 2),
                       round(jp_tempF, 2),
                       humidityF,
-		      pressureF,
-		      cloudnessF,
-		      windspeedF,
+                      pressureF,
+                      cloudnessF,
+                      windspeedF,
                       odor]
 
         wcsv_objF = csv.writer(file(filePathF, 'a'), lineterminator='\n')
@@ -268,7 +282,16 @@ if __name__ == "__main__":
     lastForecFileNm = lastForecFileNm1.replace(":", "-")
 
     # pandas を使い日付・時間でグループ化
-    forecName = ['date', 'obsrPoint', 'waterLevel', 'precip', 'temp', 'humidity', 'pressure', 'cloudness', 'windspeed', 'odor']
+    forecName = ['date',
+                 'obsrPoint',
+                 'waterLevel',
+                 'precip',
+                 'temp',
+                 'humidity',
+                 'pressure',
+                 'cloudness',
+                 'windspeed',
+                 'odor']
     forec_iris = pd.read_csv(thisForecFileNm, header=None, names=forecName)
     # print forec_iris.groupby('date').max()
     forec_iris.groupby('date').max().to_csv(lastForecFileNm, header=None)

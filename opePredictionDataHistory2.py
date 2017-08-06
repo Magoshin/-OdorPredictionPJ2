@@ -35,7 +35,8 @@ else:
         cmd2 = "mv " + datadir + "/meg_" + ObsrPoint + "_forecast_data.txt_" \
                + yesterdaystr + ".tgz " + datadir + "/history/"
         r = subprocess.check_output(cmd2, shell=True)
-        cmd3 = "rm -fr " + datadir + "/meg_" + ObsrPoint + "_forecast_data.txt_" \
+        cmd3 = "rm -fr " + datadir + "/meg_" + ObsrPoint \
+               + "_forecast_data.txt_" \
                + yesterdaystr + "*"
         r = subprocess.check_output(cmd3, shell=True)
     except Exception as e:

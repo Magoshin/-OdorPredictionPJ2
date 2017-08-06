@@ -14,6 +14,7 @@ import linecache
 import datetime
 from megClassErrorLog import errorLog
 
+
 # Functions
 def get_RaspiData(key):
 
@@ -45,6 +46,11 @@ def get_RaspiData(key):
     # RasPiから読み込んだデータ
     nowRaspiValAry = nowRaspiVal.split(',')
 
+    # ログ書込みOBJ生成
+    errObj = errorLog()
+    # トラブル対応用に生ログを吐いておく
+    res0 = errObj.write_RaspiLog(nowRaspiVal)
+
     # 1つ前のデータ
     with open(raspidata_tmp, 'r') as raspitmp:
         beforeRaspiVal = raspitmp.read()
@@ -52,9 +58,10 @@ def get_RaspiData(key):
 
     # 更新エラー処理
     if nowRaspiValAry[0] == beforeRaspiValAry[0]:
-        errObj = errorLog()
-	# thisModulePath = sys.argv[0].split('/')
-	res = errObj.write_ErrorLog("E_Logic_0001", "getOdorFromRaspai.py", u'An update failure was detected from H2Ssensor.log'.encode('utf-8'))
+        res = errObj.write_ErrorLog("E_Logic_0001",
+                                    "getOdorFromRaspai.py",
+                                    u'An update failure was detected from \
+                                      H2Ssensor.log')
 
     # 更新チェック用にデータを一時領域に保存
     with open(raspidata_tmp, 'w') as raspitmp:

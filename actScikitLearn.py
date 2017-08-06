@@ -10,14 +10,28 @@ from sklearn.externals import joblib
 
 
 # Functions
-def get_OdorPrediction(DateTime, water, rain, temp, humidity, pressure, cloudness, windspeed, odor):
+def get_OdorPrediction(DateTime,
+                       water,
+                       rain,
+                       temp,
+                       humidity,
+                       pressure,
+                       cloudness,
+                       windspeed,
+                       odor):
 
     realFile = "/megdata/data_meg-logic/real_data.txt"
     data = pd.read_csv(realFile, sep=",")
     clf = linear_model.LinearRegression()
 
     # 説明変数をセット
-    X = data.loc[:, ['waterLevel', 'precip', 'temp', 'humidity', 'pressure', 'cloudness', 'windspeed']].as_matrix()
+    X = data.loc[:, ['waterLevel',
+                     'precip',
+                     'temp',
+                     'humidity',
+                     'pressure',
+                     'cloudness',
+                     'windspeed']].as_matrix()
     # 目的変数をセット
     Y = data['odor'].as_matrix()
 
